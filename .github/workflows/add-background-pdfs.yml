@@ -1,4 +1,4 @@
-name: Add background PDFs
+name: Add Dimassi-Sjostrand background PDF
 
 on:
   push:
@@ -11,7 +11,7 @@ permissions:
   contents: write
 
 jobs:
-  add-pdfs:
+  add-pdf:
     runs-on: ubuntu-latest
     steps:
       - name: Check out Background-material
@@ -20,38 +20,22 @@ jobs:
           ref: Background-material
           fetch-depth: 0
 
-      - name: Download Zworski
-        shell: bash
-        run: |
-          set -euo pipefail
-          curl --fail --location --retry 3 --user-agent 'Mozilla/5.0' --output semiclassical.pdf 'http://math.berkeley.edu/~zworski/semiclassical.pdf'
-          test "$(head -c 4 semiclassical.pdf)" = '%PDF'
-
       - name: Download Dimassi-Sjostrand
         shell: bash
         run: |
           set -euo pipefail
           curl --fail --location --retry 3 --user-agent 'Mozilla/5.0' --output DimassiSjoestrand.pdf 'https://archive.org/download/spectralasymptot00dima/spectralasymptot00dima.pdf'
           test "$(head -c 4 DimassiSjoestrand.pdf)" = '%PDF'
+          pages=$(pdfinfo DimassiSjoestrand.pdf | awk '/^Pages:/ {print $2}')
+          echo "Pages: $pages"
+          test "$pages" = '240'
 
-      - name: Validate PDFs
-        shell: bash
-        run: |
-          set -euo pipefail
-          file semiclassical.pdf DimassiSjoestrand.pdf
-          zw_pages=$(pdfinfo semiclassical.pdf | awk '/^Pages:/ {print $2}')
-          ds_pages=$(pdfinfo DimassiSjoestrand.pdf | awk '/^Pages:/ {print $2}')
-          echo "Zworski pages: $zw_pages"
-          echo "Dimassi-Sjostrand pages: $ds_pages"
-          test "$zw_pages" = '448'
-          test "$ds_pages" = '240'
-
-      - name: Commit PDFs
+      - name: Commit PDF
         shell: bash
         run: |
           set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add semiclassical.pdf DimassiSjoestrand.pdf
-          git commit -m 'Add semiclassical background references'
+          git add DimassiSjoestrand.pdf
+          git commit -m 'Add Dimassi-Sjostrand background reference'
           git push origin HEAD:Background-material

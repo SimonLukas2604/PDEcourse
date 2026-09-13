@@ -20,20 +20,25 @@ jobs:
           ref: Background-material
           fetch-depth: 0
 
-      - name: Download PDFs
+      - name: Download Zworski
         shell: bash
         run: |
           set -euo pipefail
-          curl --fail --location --retry 3 --output semiclassical.pdf 'https://math.berkeley.edu/~zworski/semiclassical.pdf'
-          curl --fail --location --retry 3 --output DimassiSjoestrand.pdf 'https://archive.org/download/spectralasymptot00dima/spectralasymptot00dima.pdf'
+          curl --fail --location --retry 3 --user-agent 'Mozilla/5.0' --output semiclassical.pdf 'http://math.berkeley.edu/~zworski/semiclassical.pdf'
+          test "$(head -c 4 semiclassical.pdf)" = '%PDF'
+
+      - name: Download Dimassi-Sjostrand
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 3 --user-agent 'Mozilla/5.0' --output DimassiSjoestrand.pdf 'https://archive.org/download/spectralasymptot00dima/spectralasymptot00dima.pdf'
+          test "$(head -c 4 DimassiSjoestrand.pdf)" = '%PDF'
 
       - name: Validate PDFs
         shell: bash
         run: |
           set -euo pipefail
           file semiclassical.pdf DimassiSjoestrand.pdf
-          test "$(head -c 4 semiclassical.pdf)" = '%PDF'
-          test "$(head -c 4 DimassiSjoestrand.pdf)" = '%PDF'
           zw_pages=$(pdfinfo semiclassical.pdf | awk '/^Pages:/ {print $2}')
           ds_pages=$(pdfinfo DimassiSjoestrand.pdf | awk '/^Pages:/ {print $2}')
           echo "Zworski pages: $zw_pages"
